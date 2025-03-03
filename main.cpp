@@ -2,6 +2,9 @@
 #include <WinSock2.h>
 #include<string>
 #include<iostream>
+#include <numeric>
+#include <vector>
+#include <ctime>
 #pragma comment( lib, "ws2_32.lib" )
 using std::cout;
 using std::endl;
@@ -215,7 +218,7 @@ int main()
 					send(clientSocks[i], message, strlen(message), 0);
 				}
 				cout << " 3 connected clients!'" << endl;
-				
+				break;
 			}
 
 		}
@@ -305,6 +308,7 @@ int main()
 
 		}
 	}
+	//’ÊMÚ‘±I‚í‚è
 
 
 }
@@ -353,4 +357,14 @@ void InitClient(SOCKET sock)
 	}
 
 	cout << "Ú‘±¬Œ÷" << endl;
+}
+
+void Dealer()
+{
+
+}
+
+void Player()
+{
+
 }
