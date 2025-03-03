@@ -10,6 +10,7 @@ using std::cout;
 using std::endl;
 using std::cin;
 using std::string;
+using std::vector;
 
 // ポート番号
 const unsigned short SERVER_PORT = 8888;
@@ -47,7 +48,7 @@ int main()
 
 	void InitServer(SOCKET sock);
 	void InitClient(SOCKET sock);
-	
+	srand((unsigned int)time(NULL));
 
 	// WinSock2.2 初期化処理
 	int ret = 0;
@@ -309,8 +310,135 @@ int main()
 		}
 	}
 	//通信接続終わり
+	if (IsServer) 
+	{
+		//ディーラーの手札を決定
+		vector<int> dealerCards;
+		for (int i = 0; i < 2; i++) {
+			dealerCards.push_back((rand() % 10) + 1);
+		}
+		int dealer = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
+		int allStand = 0;
 
+		for (int i = 0; i < 3; i++)
+		{
+			// コネクション確立済みの全クライアントからの受信部
+				for (int i = 0; i < clientCount; i++)
+				{
+					//受信用
+					PLAYER player;
+					int ret = recv(clientSocks[i], (char*)&player, sizeof(player), 0);
+					// 受信があったら
+					if (ret != SOCKET_ERROR)
+					{
+						// バイトオーダー変換
 
+						clientCard[i].id = ntohl(player.id);
+						clientCard[i].MyCardNum = ntohl(player.MyCardNum);
+						clientCard[i].isHit = ntohl(player.isHit);
+						clientCard[i].isStand = ntohl(player.isStand);
+
+						if (clientCard[i].isStand) {
+							allStand++;
+						}
+						if (allStand == 3) {
+
+						}
+					}
+				}
+				allStand = 0;
+				
+
+			//// 送信データの作成
+			////CIRCLE sendPackets[3];
+			//PLAYER Packets[4];
+			//for (int i = 0; i < 4; i++)
+			//{
+			//	Packets[i].id = htonl(clientCard[clientCount].id);
+			//	Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
+			//	Packets[i].isHit = htonl(clientCard[clientCount].isHit);
+			//	Packets[i].isStand = htonl(clientCard[clientCount].isStand);
+			//}
+			//// コネクション確立済みの全クライアントへ送信
+			//for (int i = 0; i < clientCount; i++)
+			//{
+			//	//int ret = send(clientSocks[i], (char*)sendPackets, sizeof(sendPackets), 0);
+			//	int ret = send(clientSocks[i], (char*)Packets, sizeof(Packets), 0);
+			//	if (ret != SOCKET_ERROR)
+			//	{
+			//		// 送信成功
+			//		//cout << "send: Player" << i + 1 << endl;
+			//		//getchar();
+			//	}
+			//	else
+			//	{
+			//		if (WSAGetLastError() == WSAEWOULDBLOCK)
+			//		{
+			//			// 未送信
+			//		}
+			//		else
+			//		{
+			//			// エラー
+			//		}
+			//	}
+			//}
+		}
+	}
+	if (!IsServer)
+	{
+		int card = 0;
+		vector<int> mycards = {};
+		for (int i = 0; i < 2; i++) {
+			card = (rand() % 10) + 1;
+			mycards.push_back(card);
+		}
+		int mycardsNum = std::reduce(mycards.begin(), mycards.end(), 0);
+		cout << "1枚目のカード: " << mycards[0] << endl;
+		cout << "2枚目のカード: " << mycards[1] << endl;
+		cout << "カードの合計: " << mycardsNum << endl;
+
+		while (true)
+		{
+			if (!clientCard->isStand)
+			{
+				int choice = -1;
+				cout << "ヒットしますか？ (1:ヒット 2:スタンド) " << endl;
+				cin >> choice;
+				if (choice == 1) {
+					card = (rand() % 10) + 1;
+					mycards.push_back(card);
+					mycardsNum = std::reduce(mycards.begin(), mycards.end(), 0);
+
+					cout << "新しいカード: " << card << endl;
+					cout << "カードの合計: " << mycardsNum << endl;
+					clientCard->MyCardNum = mycardsNum;
+					//clientCard->isHit = true;
+				}
+				else if (choice == 2) {
+					clientCard->isStand = true;
+					//clientCard->isHit = false;
+				}
+				else {
+					cout << "1か2を入力" << endl;
+				}
+
+				if (mycardsNum >= 22) {
+					clientCard->isStand = true;
+				}
+
+				//データ送信
+				PLAYER sendbuff = { htonl(clientCard->id),htonl(clientCard->MyCardNum)
+					,htonl(clientCard->isHit), htonl(clientCard->isStand) };
+				int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
+			}
+			else
+			{
+				//待機中
+			}
+		}
+
+		
+	}
 }
 
 void InitServer(SOCKET sock)
@@ -361,7 +489,7 @@ void InitClient(SOCKET sock)
 
 void Dealer()
 {
-
+	
 }
 
 void Player()
