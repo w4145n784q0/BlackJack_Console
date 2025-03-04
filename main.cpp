@@ -117,7 +117,7 @@ int main()
 		while (true) {
 			char buff[MESSAGE_LENGTH];
 
-			if (clientCount < 3)
+			if (clientCount < connectPlayer)
 			{
 				// 接続要求受付部
 				SOCKADDR_IN fromAddr;
@@ -175,9 +175,9 @@ int main()
 
 			// 送信データの作成
 			//CIRCLE sendPackets[3];
-			PLAYER Packets[4];
+			PLAYER Packets[connectPlayer];
 
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < connectPlayer; i++)
 			{
 				Packets[i].id = htonl(clientCard[clientCount].id);
 				Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
@@ -209,12 +209,12 @@ int main()
 				}
 			}
 
-			if (clientCount == 3)
+			if (clientCount == connectPlayer)
 			{
 				
 
 				const char* message = "Server has 3 connected clients!";
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < connectPlayer; i++)
 				{
 					send(clientSocks[i], message, strlen(message), 0);
 				}
@@ -257,18 +257,18 @@ int main()
 			}
 
 			// サーバから受信
-			PLAYER recvPacket[4];
+			PLAYER recvPacket[connectPlayer];
 			ret = recv(listenSock, (char*)recvPacket, sizeof(recvPacket), 0);
 
-			ret = recv(listenSock, buff, sizeof(buff) - 1, 0);	// こっちはstrlen()にしない
-			if (ret == SOCKET_ERROR)
+			int message = recv(listenSock, buff, sizeof(buff) - 1, 0);	// こっちはstrlen()にしない
+			if (message == SOCKET_ERROR)
 			{
 				// エラー処理
 			}
 			else
 			{
 				// 最後に終端記号の\0をつける
-				buff[ret] = '\0';
+				buff[message] = '\0';
 			}
 			//std::cout << "受信した情報 :" << buff << std::endl;
 			std::string str = buff;
