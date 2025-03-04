@@ -39,6 +39,9 @@ int main()
 		//string name;//名前
 	};
 	PLAYER clientCard[connectPlayer];
+	clientCard[0] = { 0,0,false,false };
+	clientCard[1] = { 0,0,false,false };
+	clientCard[2] = { 0,0,false,false };
 
 	SOCKET clientSocks[connectPlayer];
 	SOCKET listenSock;
@@ -178,10 +181,10 @@ int main()
 
 			for (int i = 0; i < connectPlayer; i++)
 			{
-				Packets[i].id = htonl(clientCard[clientCount].id);
-				Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
-				Packets[i].isHit = htonl(clientCard[clientCount].isHit);
-				Packets[i].isStand = htonl(clientCard[clientCount].isStand);
+				Packets[i].id = htonl(clientCard[i].id);
+				Packets[i].MyCardNum = htonl(clientCard[i].MyCardNum);
+				Packets[i].isHit = htonl(clientCard[i].isHit);
+				Packets[i].isStand = htonl(clientCard[i].isStand);
 			}
 
 			// コネクション確立済みの全クライアントへ送信
@@ -216,7 +219,6 @@ int main()
 					send(clientSocks[i], message, strlen(message), 0);
 				}
 				cout << " 3 connected clients!'" << endl;
-				break;
 			}
 
 		}
