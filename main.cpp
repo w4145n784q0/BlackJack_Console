@@ -275,8 +275,8 @@ int main()
 			if (str.compare("Server has 3 connected clients!") == 0)
 			{
 				std::cout << "connect" << std::endl;
-				getchar();
-				break;
+				//getchar();
+				//break;
 			}
 
 			
@@ -316,6 +316,7 @@ int main()
 	//サーバー側のゲーム処理
 	if (IsServer) 
 	{
+		cout << "game start あなたはディーラーです" << endl;
 		//ディーラーの手札を決定
 		vector<int> dealerCards;
 		for (int i = 0; i < 2; i++) {
@@ -394,6 +395,7 @@ int main()
 	//クライアント側のゲーム
 	if (!IsServer)
 	{
+		cout << "game start あなたはプレイヤーです" << endl;
 		int card = 0;
 		vector<int> mycards = {};
 		for (int i = 0; i < 2; i++) {
@@ -431,6 +433,7 @@ int main()
 				}
 
 				if (mycardsNum >= 22) {
+					cout << "burstしました" << endl;
 					clientCard->isStand = true;
 				}
 
