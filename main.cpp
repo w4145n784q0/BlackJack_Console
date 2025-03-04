@@ -36,7 +36,7 @@ int main()
 		int MyCardNum;//自分の持ってるカードの合計値
 		bool isHit; //hitかどうか　trueならカードを引く（暫定）
 		bool isStand;//standかどうか　全員trueなら勝敗処理へ
-		string name;
+		char name[MESSAGE_LENGTH];
 	};
 	PLAYER clientCard[connectPlayer];
 
@@ -134,7 +134,7 @@ int main()
 					clientCard[clientCount].MyCardNum = 0;
 					clientCard[clientCount].isHit = false;
 					clientCard[clientCount].isStand = false;
-					clientCard[clientCount].name = "";
+					clientCard[clientCount].name[(u_long)MESSAGE_LENGTH] = {};
 					clientCount++;
 				}
 				else
@@ -168,7 +168,7 @@ int main()
 					clientCard[i].MyCardNum = ntohl(player.MyCardNum);
 					clientCard[i].isHit = ntohl(player.isHit);
 					clientCard[i].isStand = ntohl(player.isStand);
-					clientCard[i].name = player.name;
+					clientCard[i].name[MESSAGE_LENGTH] = ntohl(player.name[(u_long)MESSAGE_LENGTH]);
 				}
 			}
 
@@ -182,7 +182,7 @@ int main()
 				Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
 				Packets[i].isHit = htonl(clientCard[clientCount].isHit);
 				Packets[i].isStand = htonl(clientCard[clientCount].isStand);
-				Packets[i].name = clientCard[clientCount].name;
+				Packets[i].name[MESSAGE_LENGTH] = clientCard[clientCount].name[(u_long)MESSAGE_LENGTH];
 			}
 
 			// コネクション確立済みの全クライアントへ送信
@@ -231,7 +231,7 @@ int main()
 
 			PLAYER player = { 0,0,false,false,""};
 			PLAYER sendbuff = { htonl(player.id),htonl(player.MyCardNum),htonl(player.isHit),
-						   htonl(player.isStand),player.name };
+						   htonl(player.isStand),player.name[(u_long)MESSAGE_LENGTH] };
 
 			int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
 
@@ -288,7 +288,7 @@ int main()
 					clientCard[i].MyCardNum = ntohl(recvPacket[i].MyCardNum);
 					clientCard[i].isHit = ntohl(recvPacket[i].isHit);
 					clientCard[i].isStand = ntohl(recvPacket[i].isStand);
-					clientCard[i].name = recvPacket[i].name;
+					clientCard[i].name[MESSAGE_LENGTH] = ntohl(recvPacket[i].name[MESSAGE_LENGTH]);
 				}
 			}
 			else
@@ -303,9 +303,6 @@ int main()
 					//cout << "未受信かつエラー" << endl;
 				}
 			}
-
-			
-
 		}
 	}
 	//通信接続終わり
@@ -349,7 +346,7 @@ int main()
 					clientCard[i].MyCardNum = ntohl(player.MyCardNum);
 					clientCard[i].isHit = ntohl(player.isHit);
 					clientCard[i].isStand = ntohl(player.isStand);
-					clientCard[i].name = player.name;
+					clientCard[i].name[MESSAGE_LENGTH] = ntohl(player.name[(u_long)MESSAGE_LENGTH]);
 					
 					if (clientCard[i].isStand) {
 						allStand[i] = true;
@@ -417,7 +414,7 @@ int main()
 
 		//データ送信
 		PLAYER sendbuff = { htonl(myData.id),htonl(myData.isHit)//エラー
-			,htonl(myData.isStand), htonl(myData.MyCardNum),myData.name};
+			,htonl(myData.isStand), htonl(myData.MyCardNum),htonl(myData.name[MESSAGE_LENGTH])};
 
 		//1ターン目の情報を送る
 		int sendData = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
