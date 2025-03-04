@@ -29,7 +29,6 @@ int main()
 	//MyCardNum: 自分の持ってるカードの合計値
 	//isHit    : hitかどうか　trueならカードを引く（暫定）
 	//isStand  : standかどうか　全員trueなら勝敗処理へ
-
 	struct PLAYER
 	{
 		int id;//プレイヤーID
@@ -318,7 +317,8 @@ int main()
 			dealerCards.push_back((rand() % 10) + 1);
 		}
 		int dealer = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
-		int allStand = 0;
+		int Stand = 0;
+		bool allStand[3] = { false,false,false };
 
 		cout << "クライアント待機中";
 		while (true) {
@@ -339,17 +339,20 @@ int main()
 						clientCard[i].isHit = ntohl(player.isHit);
 						clientCard[i].isStand = ntohl(player.isStand);
 
-						if (clientCard[i].isStand) {
-							allStand++;
+						if (clientCard[i].isStand) 
+						{
+							allStand[i] = true;
+							cout << "player" << i + 1 << "がスタンドしました" << endl;
 						}
-
-						//全員スタンドしたら
-						if (allStand == 3) {
-
-						}
+						
 					}
 				}
-				allStand = 0;
+				
+				if (allStand[0] && allStand[1] && allStand[0])
+				{
+					cout << "全員stand" << endl;
+					break;
+				}
 
 			}
 		}
@@ -358,6 +361,8 @@ int main()
 	//クライアント側のゲーム
 	if (!IsServer)
 	{
+		PLAYER myData = { 0,0,false,false };
+
 		cout << "game start あなたはプレイヤーです" << endl;
 		int card = 0;
 		vector<int> mycards = {};
@@ -370,9 +375,11 @@ int main()
 		cout << "2枚目のカード: " << mycards[1] << endl;
 		cout << "カードの合計: " << mycardsNum << endl;
 
+		myData.MyCardNum = mycardsNum;
+
 		while (true)
 		{
-			if (!clientCard->isStand)
+			if (!myData.isStand)
 			{
 				int choice = -1;
 				cout << "ヒットしますか？ (1:ヒット 2:スタンド) " << endl;
@@ -384,11 +391,12 @@ int main()
 
 					cout << "新しいカード: " << card << endl;
 					cout << "カードの合計: " << mycardsNum << endl;
-					clientCard->MyCardNum = mycardsNum;
+					myData.MyCardNum = mycardsNum;
 					//clientCard->isHit = true;
 				}
 				else if (choice == 2) {
 					clientCard->isStand = true;
+					myData.MyCardNum = mycardsNum;
 					//clientCard->isHit = false;
 				}
 				else {
@@ -397,12 +405,12 @@ int main()
 
 				if (mycardsNum >= 22) {
 					cout << "burstしました" << endl;
-					clientCard->isStand = true;
+					myData.isStand = true;
 				}
 
 				//データ送信
-				PLAYER sendbuff = { htonl(clientCard->id),htonl(clientCard->MyCardNum)
-					,htonl(clientCard->isHit), htonl(clientCard->isStand) };
+				PLAYER sendbuff = { htonl(myData.id),htonl(myData.MyCardNum)
+					,htonl(myData.isHit), htonl(myData.isStand) };
 				int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
 			}
 			else
