@@ -36,12 +36,13 @@ int main()
 		int MyCardNum;//自分の持ってるカードの合計値
 		bool isHit; //hitかどうか　trueならカードを引く（暫定）
 		bool isStand;//standかどうか　全員trueなら勝敗処理へ
+		//string name;//名前
 	};
 	PLAYER clientCard[connectPlayer];
 
 	SOCKET clientSocks[connectPlayer];
 	SOCKET listenSock;
-	
+
 	//自分はサーバーかクライアントか
 	bool IsServer;
 
@@ -112,7 +113,7 @@ int main()
 	//サーバの待機
 	if (IsServer) {
 
-		
+
 		while (true) {
 			char buff[MESSAGE_LENGTH];
 
@@ -166,6 +167,8 @@ int main()
 					clientCard[i].MyCardNum = ntohl(player.MyCardNum);
 					clientCard[i].isHit = ntohl(player.isHit);
 					clientCard[i].isStand = ntohl(player.isStand);
+
+
 				}
 			}
 
@@ -254,7 +257,6 @@ int main()
 			PLAYER recvPacket[connectPlayer];
 			ret = recv(listenSock, (char*)recvPacket, sizeof(recvPacket), 0);
 
-			//ゲーム開始メッセージを受け取る用
 			int message = recv(listenSock, buff, sizeof(buff) - 1, 0);	// こっちはstrlen()にしない
 			if (message == SOCKET_ERROR)
 			{
@@ -274,7 +276,7 @@ int main()
 				break;
 			}
 
-			
+
 
 			if (ret != SOCKET_ERROR)
 			{
@@ -305,67 +307,56 @@ int main()
 	//ここからゲーム
 
 	//サーバー側のゲーム処理
-	if (IsServer) 
+	if (IsServer)
 	{
-		char buff[MESSAGE_LENGTH];
-		cout << "あなたはディーラーです" << endl;
+		cout << "game start あなたはディーラーです" << endl;
 		//ディーラーの手札を決定
 		vector<int> dealerCards;
 		for (int i = 0; i < 2; i++) {
 			dealerCards.push_back((rand() % 10) + 1);
 		}
 		int dealer = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
-		int Stand = 0;
-		bool allStand[3] = {false,false,false};
+		int allStand = 0;
 
 		cout << "クライアント待機中";
-
-		while (true)
-		{
-			// コネクション確立済みの全クライアントからの受信部
-			for (int i = 0; i < clientCount; i++)
+		while (true) {
+			for (int i = 0; i < connectPlayer; i++)
 			{
-				//受信用
-				//プレイヤー情報の構造体
-				PLAYER player;
-				int ret = recv(clientSocks[i], (char*)&player, sizeof(player), 0);
-
-				// Playerからの受信があったら
-				if (ret != SOCKET_ERROR)
+				// コネクション確立済みの全クライアントからの受信部
+				for (int i = 0; i < clientCount; i++)
 				{
-					// バイトオーダー変換
-					clientCard[i].id = ntohl(player.id);
-					clientCard[i].MyCardNum = ntohl(player.MyCardNum);
-					clientCard[i].isHit = ntohl(player.isHit);
-					clientCard[i].isStand = ntohl(player.isStand);
-					
-					if (clientCard[i].isStand) {
-						allStand[i] = true;
+					//受信用
+					PLAYER player;
+					int ret = recv(clientSocks[i], (char*)&player, sizeof(player), 0);
+					// 受信があったら
+					if (ret != SOCKET_ERROR)
+					{
+						// バイトオーダー変換
+						clientCard[i].id = ntohl(player.id);
+						clientCard[i].MyCardNum = ntohl(player.MyCardNum);
+						clientCard[i].isHit = ntohl(player.isHit);
+						clientCard[i].isStand = ntohl(player.isStand);
+
+						if (clientCard[i].isStand) {
+							allStand++;
+						}
+
+						//全員スタンドしたら
+						if (allStand == 3) {
+
+						}
 					}
 				}
-
-				//std::cout << "受信した情報 :" << buff << std::endl;
+				allStand = 0;
 
 			}
-
-			if (allStand[0] && allStand[1] && allStand[0])
-			{
-				break;
-			}
+		}
 	}
-}
 
 	//クライアント側のゲーム
 	if (!IsServer)
 	{
-		PLAYER myData = {0,0,false,false};
-		string name;
-		char Namebuff[MESSAGE_LENGTH];
-
-		cout << "名前を入力してください" << endl;
-		cin >> name;
-
-		cout << "ようこそ"<< name << " " << " あなたはプレイヤーです" << endl;
+		cout << "game start あなたはプレイヤーです" << endl;
 		int card = 0;
 		vector<int> mycards = {};
 		for (int i = 0; i < 2; i++) {
@@ -377,43 +368,48 @@ int main()
 		cout << "2枚目のカード: " << mycards[1] << endl;
 		cout << "カードの合計: " << mycardsNum << endl;
 
-		//myData.isHit = 
-		//myData.isStand = 
-		myData.MyCardNum = mycardsNum;
+		while (true)
+		{
+			if (!clientCard->isStand)
+			{
+				int choice = -1;
+				cout << "ヒットしますか？ (1:ヒット 2:スタンド) " << endl;
+				cin >> choice;
+				if (choice == 1) {
+					card = (rand() % 10) + 1;
+					mycards.push_back(card);
+					mycardsNum = std::reduce(mycards.begin(), mycards.end(), 0);
 
+					cout << "新しいカード: " << card << endl;
+					cout << "カードの合計: " << mycardsNum << endl;
+					clientCard->MyCardNum = mycardsNum;
+					//clientCard->isHit = true;
+				}
+				else if (choice == 2) {
+					clientCard->isStand = true;
+					//clientCard->isHit = false;
+				}
+				else {
+					cout << "1か2を入力" << endl;
+				}
 
-		int choice = -1;
-		cout << "ヒットしますか？ (1:ヒット 2:スタンド) " << endl;
-		cin >> choice;
-		if (choice == 1) {
-			card = (rand() % 10) + 1;
-			mycards.push_back(card);
-			mycardsNum = std::reduce(mycards.begin(), mycards.end(), 0);
+				if (mycardsNum >= 22) {
+					cout << "burstしました" << endl;
+					clientCard->isStand = true;
+				}
 
-			cout << "新しいカード: " << card << endl;
-			cout << "カードの合計: " << mycardsNum << endl;
-			myData.MyCardNum = mycardsNum;
-			
+				//データ送信
+				PLAYER sendbuff = { htonl(clientCard->id),htonl(clientCard->MyCardNum)
+					,htonl(clientCard->isHit), htonl(clientCard->isStand) };
+				int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
+			}
+			else
+			{
+				//待機中
+			}
 		}
-		else if (choice == 2) {
-			myData.isStand = true;
-			
-		}
-		else {
-			cout << "1か2を入力" << endl;
-		}
 
-		//データ送信
-		PLAYER sendbuff = { htonl(myData.id),htonl(myData.isHit)//エラー
-			,htonl(myData.isStand), htonl(myData.MyCardNum)};
 
-		//1ターン目の情報を送る
-		int sendData = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
-
-		//一旦終わる
-		
-
-		
 	}
 }
 
@@ -465,7 +461,7 @@ void InitClient(SOCKET sock)
 
 void Dealer()
 {
-	
+
 }
 
 void Player()
