@@ -17,9 +17,9 @@ const unsigned short SERVER_PORT = 8888;
 // 送受信するメッセージの最大値
 const unsigned int MESSAGE_LENGTH = 1024;
 // サーバのIPアドレス
-const char* SERVER_ADDRESS = "192.168.42.17";
+const char* SERVER_ADDRESS = "192.168.43.5";
 
-
+const int connectPlayer = 3;
 
 
 int main()
@@ -38,9 +38,9 @@ int main()
 		bool isStand;//standかどうか　全員trueなら勝敗処理へ
 		//string name;//名前
 	};
-	PLAYER clientCard[3];
+	PLAYER clientCard[connectPlayer];
 
-	SOCKET clientSocks[3];
+	SOCKET clientSocks[connectPlayer];
 	SOCKET listenSock;
 	
 	//自分はサーバーかクライアントか
@@ -276,14 +276,14 @@ int main()
 			{
 				std::cout << "connect" << std::endl;
 				//getchar();
-				//break;
+				break;
 			}
 
 			
 
 			if (ret != SOCKET_ERROR)
 			{
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < connectPlayer; i++)
 				{
 					clientCard[i].id = ntohl(recvPacket[i].id);
 					clientCard[i].MyCardNum = ntohl(recvPacket[i].MyCardNum);
@@ -325,9 +325,11 @@ int main()
 		int dealer = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
 		int allStand = 0;
 
-		for (int i = 0; i < 3; i++)
-		{
-			// コネクション確立済みの全クライアントからの受信部
+		cout << "クライアント待機中";
+		while (true) {
+			for (int i = 0; i < connectPlayer; i++)
+			{
+				// コネクション確立済みの全クライアントからの受信部
 				for (int i = 0; i < clientCount; i++)
 				{
 					//受信用
@@ -354,42 +356,45 @@ int main()
 					}
 				}
 				allStand = 0;
-				
 
-			//// 送信データの作成
-			////CIRCLE sendPackets[3];
-			//PLAYER Packets[4];
-			//for (int i = 0; i < 4; i++)
-			//{
-			//	Packets[i].id = htonl(clientCard[clientCount].id);
-			//	Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
-			//	Packets[i].isHit = htonl(clientCard[clientCount].isHit);
-			//	Packets[i].isStand = htonl(clientCard[clientCount].isStand);
-			//}
-			//// コネクション確立済みの全クライアントへ送信
-			//for (int i = 0; i < clientCount; i++)
-			//{
-			//	//int ret = send(clientSocks[i], (char*)sendPackets, sizeof(sendPackets), 0);
-			//	int ret = send(clientSocks[i], (char*)Packets, sizeof(Packets), 0);
-			//	if (ret != SOCKET_ERROR)
-			//	{
-			//		// 送信成功
-			//		//cout << "send: Player" << i + 1 << endl;
-			//		//getchar();
-			//	}
-			//	else
-			//	{
-			//		if (WSAGetLastError() == WSAEWOULDBLOCK)
-			//		{
-			//			// 未送信
-			//		}
-			//		else
-			//		{
-			//			// エラー
-			//		}
-			//	}
-			//}
+
+				//// 送信データの作成
+				////CIRCLE sendPackets[3];
+				//PLAYER Packets[4];
+				//for (int i = 0; i < 4; i++)
+				//{
+				//	Packets[i].id = htonl(clientCard[clientCount].id);
+				//	Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
+				//	Packets[i].isHit = htonl(clientCard[clientCount].isHit);
+				//	Packets[i].isStand = htonl(clientCard[clientCount].isStand);
+				//}
+				//// コネクション確立済みの全クライアントへ送信
+				//for (int i = 0; i < clientCount; i++)
+				//{
+				//	//int ret = send(clientSocks[i], (char*)sendPackets, sizeof(sendPackets), 0);
+				//	int ret = send(clientSocks[i], (char*)Packets, sizeof(Packets), 0);
+				//	if (ret != SOCKET_ERROR)
+				//	{
+				//		// 送信成功
+				//		//cout << "send: Player" << i + 1 << endl;
+				//		//getchar();
+				//	}
+				//	else
+				//	{
+				//		if (WSAGetLastError() == WSAEWOULDBLOCK)
+				//		{
+				//			// 未送信
+				//		}
+				//		else
+				//		{
+				//			// エラー
+				//		}
+				//	}
+				//}
+			}
 		}
+
+
 	}
 
 	//クライアント側のゲーム
@@ -468,7 +473,7 @@ void InitServer(SOCKET sock)
 	}
 
 	// リスン状態へ
-	if (listen(sock, 3) == SOCKET_ERROR)
+	if (listen(sock, connectPlayer) == SOCKET_ERROR)
 	{
 		// エラー
 		cout << "listen error" << endl;
