@@ -29,14 +29,13 @@ int main()
 	//MyCardNum: 自分の持ってるカードの合計値
 	//isHit    : hitかどうか　trueならカードを引く（暫定）
 	//isStand  : standかどうか　全員trueなら勝敗処理へ
-	//name     : プレイヤーの名前
+
 	struct PLAYER
 	{
 		int id;//プレイヤーID
 		int MyCardNum;//自分の持ってるカードの合計値
 		bool isHit; //hitかどうか　trueならカードを引く（暫定）
 		bool isStand;//standかどうか　全員trueなら勝敗処理へ
-		char name[MESSAGE_LENGTH];
 	};
 	PLAYER clientCard[connectPlayer];
 
@@ -134,7 +133,6 @@ int main()
 					clientCard[clientCount].MyCardNum = 0;
 					clientCard[clientCount].isHit = false;
 					clientCard[clientCount].isStand = false;
-					clientCard[clientCount].name[(u_long)MESSAGE_LENGTH] = {};
 					clientCount++;
 				}
 				else
@@ -168,7 +166,6 @@ int main()
 					clientCard[i].MyCardNum = ntohl(player.MyCardNum);
 					clientCard[i].isHit = ntohl(player.isHit);
 					clientCard[i].isStand = ntohl(player.isStand);
-					clientCard[i].name[MESSAGE_LENGTH] = ntohl(player.name[(u_long)MESSAGE_LENGTH]);
 				}
 			}
 
@@ -182,7 +179,6 @@ int main()
 				Packets[i].MyCardNum = htonl(clientCard[clientCount].MyCardNum);
 				Packets[i].isHit = htonl(clientCard[clientCount].isHit);
 				Packets[i].isStand = htonl(clientCard[clientCount].isStand);
-				Packets[i].name[MESSAGE_LENGTH] = clientCard[clientCount].name[(u_long)MESSAGE_LENGTH];
 			}
 
 			// コネクション確立済みの全クライアントへ送信
@@ -229,9 +225,9 @@ int main()
 		while (true) {
 			char buff[MESSAGE_LENGTH];
 
-			PLAYER player = { 0,0,false,false,""};
+			PLAYER player = { 0,0,false,false};
 			PLAYER sendbuff = { htonl(player.id),htonl(player.MyCardNum),htonl(player.isHit),
-						   htonl(player.isStand),player.name[(u_long)MESSAGE_LENGTH] };
+						   htonl(player.isStand)};
 
 			int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
 
@@ -288,7 +284,6 @@ int main()
 					clientCard[i].MyCardNum = ntohl(recvPacket[i].MyCardNum);
 					clientCard[i].isHit = ntohl(recvPacket[i].isHit);
 					clientCard[i].isStand = ntohl(recvPacket[i].isStand);
-					clientCard[i].name[MESSAGE_LENGTH] = ntohl(recvPacket[i].name[MESSAGE_LENGTH]);
 				}
 			}
 			else
@@ -335,9 +330,6 @@ int main()
 				PLAYER player;
 				int ret = recv(clientSocks[i], (char*)&player, sizeof(player), 0);
 
-				//プレイヤーの名前
-				//int name = recv(listenSock, buff, sizeof(buff) - 1, 0);
-
 				// Playerからの受信があったら
 				if (ret != SOCKET_ERROR)
 				{
@@ -346,7 +338,6 @@ int main()
 					clientCard[i].MyCardNum = ntohl(player.MyCardNum);
 					clientCard[i].isHit = ntohl(player.isHit);
 					clientCard[i].isStand = ntohl(player.isStand);
-					clientCard[i].name[MESSAGE_LENGTH] = ntohl(player.name[(u_long)MESSAGE_LENGTH]);
 					
 					if (clientCard[i].isStand) {
 						allStand[i] = true;
@@ -367,14 +358,14 @@ int main()
 	//クライアント側のゲーム
 	if (!IsServer)
 	{
-		PLAYER myData = {0,0,false,false,""};
-		
+		PLAYER myData = {0,0,false,false};
+		string name;
 		char Namebuff[MESSAGE_LENGTH];
 
 		cout << "名前を入力してください" << endl;
-		cin >> myData.name;
+		cin >> name;
 
-		cout << "ようこそ"<< myData.name << " " << " あなたはプレイヤーです" << endl;
+		cout << "ようこそ"<< name << " " << " あなたはプレイヤーです" << endl;
 		int card = 0;
 		vector<int> mycards = {};
 		for (int i = 0; i < 2; i++) {
@@ -414,14 +405,10 @@ int main()
 
 		//データ送信
 		PLAYER sendbuff = { htonl(myData.id),htonl(myData.isHit)//エラー
-			,htonl(myData.isStand), htonl(myData.MyCardNum),htonl(myData.name[MESSAGE_LENGTH])};
+			,htonl(myData.isStand), htonl(myData.MyCardNum)};
 
 		//1ターン目の情報を送る
 		int sendData = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
-		//名前を送る
-		//int sendName = send(listenSock, (char*)&Namebuff, strlen(Namebuff), 0);
-		
-		
 
 		//一旦終わる
 		
