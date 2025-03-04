@@ -310,6 +310,10 @@ int main()
 		}
 	}
 	//通信接続終わり
+
+	//ここからゲーム
+
+	//サーバー側のゲーム処理
 	if (IsServer) 
 	{
 		//ディーラーの手札を決定
@@ -341,6 +345,8 @@ int main()
 						if (clientCard[i].isStand) {
 							allStand++;
 						}
+
+						//全員スタンドしたら
 						if (allStand == 3) {
 
 						}
@@ -384,6 +390,8 @@ int main()
 			//}
 		}
 	}
+
+	//クライアント側のゲーム
 	if (!IsServer)
 	{
 		int card = 0;
