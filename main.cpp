@@ -45,13 +45,21 @@ int main()
 	SOCKET clientSocks[connectPlayer];
 	SOCKET listenSock;
 
+	srand((unsigned int)time(NULL));
+
+	//ディーラーの手札
+	vector<int> dealerCards;
+	for (int i = 0; i < 2; i++) {
+		dealerCards.push_back((rand() % 10) + 1);
+	}
+	int dealerCard = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
+
 	//自分はサーバーかクライアントか
 	bool IsServer;
 
 	void InitServer(SOCKET sock);
 	void InitClient(SOCKET sock);
-	srand((unsigned int)time(NULL));
-
+	
 	// WinSock2.2 初期化処理
 	int ret = 0;
 	WSADATA wsaData;
@@ -268,7 +276,6 @@ int main()
 				// 最後に終端記号の\0をつける
 				buff[message] = '\0';
 			}
-			//std::cout << "受信した情報 :" << buff << std::endl;
 			std::string str = buff;
 			if (str.compare("Server has 3 connected clients!") == 0)
 			{
@@ -312,11 +319,11 @@ int main()
 	{
 		cout << "game start あなたはディーラーです" << endl;
 		//ディーラーの手札を決定
-		vector<int> dealerCards;
+		vector<int> dealerCards_;
 		for (int i = 0; i < 2; i++) {
-			dealerCards.push_back((rand() % 10) + 1);
+			dealerCards_.push_back((rand() % 10) + 1);
 		}
-		int dealer = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
+		int dealer = std::reduce(dealerCards_.begin(), dealerCards_.end(), 0);
 		int Stand = 0;
 		bool allStand[3] = { false,false,false };
 
@@ -467,14 +474,4 @@ void InitClient(SOCKET sock)
 	}
 
 	cout << "接続成功" << endl;
-}
-
-void Dealer()
-{
-
-}
-
-void Player()
-{
-
 }
