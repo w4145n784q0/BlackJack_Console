@@ -427,7 +427,7 @@ int main()
 		cout << "ディーラーの手札:" << dealerCard << endl;
 		cout << "あなたの手札:" << myData.MyCardNum << endl;
 
-		if (dealerCard > myData.MyCardNum) {
+		if (dealerCard > myData.MyCardNum || myData.MyCardNum <= 22) {
 			cout << "ディーラーの勝ち ";
 		}
 		else if (dealerCard < myData.MyCardNum) {
