@@ -5,14 +5,12 @@
 #include <numeric>
 #include <vector>
 #include <ctime>
-#include<limits>
 #pragma comment( lib, "ws2_32.lib" )
 using std::cout;
 using std::endl;
 using std::cin;
 using std::string;
 using std::vector;
-std::numeric_limits;
 
 // ポート番号
 const unsigned short SERVER_PORT = 8888;
@@ -21,6 +19,7 @@ const unsigned int MESSAGE_LENGTH = 1024;
 // サーバのIPアドレス
 const char* SERVER_ADDRESS = "127.0.0.1";
 
+//接続の最大値
 const int connectPlayer = 3;
 
 
@@ -29,15 +28,14 @@ int main()
 	//プレイヤーの情報
 	//id       : プレイヤーID
 	//MyCardNum: 自分の持ってるカードの合計値
-	//isHit    : hitかどうか　trueならカードを引く（暫定）
+	//isHit    : hitかどうか　trueならカードを引く
 	//isStand  : standかどうか　全員trueなら勝敗処理へ
 	struct PLAYER
 	{
 		int id;//プレイヤーID
 		int MyCardNum;//自分の持ってるカードの合計値
-		bool isHit; //hitかどうか　trueならカードを引く（暫定）
+		bool isHit; //hitかどうか　trueならカードを引く
 		bool isStand;//standかどうか　全員trueなら勝敗処理へ
-		//string name;//名前
 	};
 	PLAYER clientCard[connectPlayer];
 	clientCard[0] = { 0,0,false,false };
@@ -49,12 +47,12 @@ int main()
 
 	srand((unsigned int)time(NULL));
 
-	//ディーラーの手札
+	//ディーラーの手札を作成
 	vector<int> dealerCards;
 	for (int i = 0; i < 2; i++) {
 		dealerCards.push_back((rand() % 10) + 1);
 	}
-	int dealerCard = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
+	int dealerCard = std::reduce(dealerCards.begin(), dealerCards.end(), 0);//ディーラーの手札
 
 	//自分はサーバーかクライアントか
 	bool IsServer;
@@ -286,8 +284,6 @@ int main()
 				break;
 			}
 
-
-
 			if (ret != SOCKET_ERROR)
 			{
 				for (int i = 0; i < connectPlayer; i++)
@@ -353,7 +349,6 @@ int main()
 							allStand[i] = true;
 							cout << "player" << i + 1 << "がスタンドしました" << endl;
 						}
-
 					}
 				}
 
@@ -362,7 +357,6 @@ int main()
 					cout << "全員stand" << endl;
 					break;
 				}
-
 			}
 		}
 	}
@@ -445,6 +439,7 @@ int main()
 		cout << "ゲームを終了します" << endl;
 	}
 
+	//解放処理
 	closesocket(clientSocks[2]);
 	closesocket(clientSocks[1]);
 	closesocket(clientSocks[0]);
@@ -486,7 +481,6 @@ void InitClient(SOCKET sock)
 	serverAddr.sin_family = AF_INET;
 	serverAddr.sin_port = htons(SERVER_PORT);
 	inet_pton(AF_INET, SERVER_ADDRESS, &serverAddr.sin_addr.s_addr);
-	//DrawString(0, 60, "サーバアドレス指定成功", GetColor(255, 255, 255));
 
 	if (connect(sock, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
 	{
