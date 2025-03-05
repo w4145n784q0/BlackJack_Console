@@ -29,7 +29,6 @@ int main()
 	//MyCardNum: 自分の持ってるカードの合計値
 	//isHit    : hitかどうか　trueならカードを引く（暫定）
 	//isStand  : standかどうか　全員trueなら勝敗処理へ
-
 	struct PLAYER
 	{
 		int id;//プレイヤーID
@@ -46,13 +45,21 @@ int main()
 	SOCKET clientSocks[connectPlayer];
 	SOCKET listenSock;
 
+	srand((unsigned int)time(NULL));
+
+	//ディーラーの手札
+	vector<int> dealerCards;
+	for (int i = 0; i < 2; i++) {
+		dealerCards.push_back((rand() % 10) + 1);
+	}
+	int dealerCard = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
+
 	//自分はサーバーかクライアントか
 	bool IsServer;
 
 	void InitServer(SOCKET sock);
 	void InitClient(SOCKET sock);
-	srand((unsigned int)time(NULL));
-
+	
 	// WinSock2.2 初期化処理
 	int ret = 0;
 	WSADATA wsaData;
@@ -269,7 +276,6 @@ int main()
 				// 最後に終端記号の\0をつける
 				buff[message] = '\0';
 			}
-			//std::cout << "受信した情報 :" << buff << std::endl;
 			std::string str = buff;
 			if (str.compare("Server has 3 connected clients!") == 0)
 			{
@@ -313,12 +319,13 @@ int main()
 	{
 		cout << "game start あなたはディーラーです" << endl;
 		//ディーラーの手札を決定
-		vector<int> dealerCards;
+		vector<int> dealerCards_;
 		for (int i = 0; i < 2; i++) {
-			dealerCards.push_back((rand() % 10) + 1);
+			dealerCards_.push_back((rand() % 10) + 1);
 		}
-		int dealer = std::reduce(dealerCards.begin(), dealerCards.end(), 0);
-		int allStand = 0;
+		int dealer = std::reduce(dealerCards_.begin(), dealerCards_.end(), 0);
+		int Stand = 0;
+		bool allStand[3] = { false,false,false };
 
 		cout << "クライアント待機中";
 		while (true) {
@@ -339,17 +346,20 @@ int main()
 						clientCard[i].isHit = ntohl(player.isHit);
 						clientCard[i].isStand = ntohl(player.isStand);
 
-						if (clientCard[i].isStand) {
-							allStand++;
+						if (clientCard[i].isStand) 
+						{
+							allStand[i] = true;
+							cout << "player" << i + 1 << "がスタンドしました" << endl;
 						}
-
-						//全員スタンドしたら
-						if (allStand == 3) {
-
-						}
+						
 					}
 				}
-				allStand = 0;
+				
+				if (allStand[0] && allStand[1] && allStand[0])
+				{
+					cout << "全員stand" << endl;
+					break;
+				}
 
 			}
 		}
@@ -358,6 +368,8 @@ int main()
 	//クライアント側のゲーム
 	if (!IsServer)
 	{
+		PLAYER myData = { 0,0,false,false };
+
 		cout << "game start あなたはプレイヤーです" << endl;
 		int card = 0;
 		vector<int> mycards = {};
@@ -370,9 +382,11 @@ int main()
 		cout << "2枚目のカード: " << mycards[1] << endl;
 		cout << "カードの合計: " << mycardsNum << endl;
 
+		myData.MyCardNum = mycardsNum;
+
 		while (true)
 		{
-			if (!clientCard->isStand)
+			if (!myData.isStand)
 			{
 				int choice = -1;
 				cout << "ヒットしますか？ (1:ヒット 2:スタンド) " << endl;
@@ -384,11 +398,12 @@ int main()
 
 					cout << "新しいカード: " << card << endl;
 					cout << "カードの合計: " << mycardsNum << endl;
-					clientCard->MyCardNum = mycardsNum;
+					myData.MyCardNum = mycardsNum;
 					//clientCard->isHit = true;
 				}
 				else if (choice == 2) {
 					clientCard->isStand = true;
+					myData.MyCardNum = mycardsNum;
 					//clientCard->isHit = false;
 				}
 				else {
@@ -397,22 +412,39 @@ int main()
 
 				if (mycardsNum >= 22) {
 					cout << "burstしました" << endl;
-					clientCard->isStand = true;
+					myData.isStand = true;
 				}
 
-				//データ送信
-				PLAYER sendbuff = { htonl(clientCard->id),htonl(clientCard->MyCardNum)
-					,htonl(clientCard->isHit), htonl(clientCard->isStand) };
-				int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
 			}
 			else
 			{
-				//待機中
+				break;
 			}
 		}
 
+		cout << "勝負" << endl;
+		cout << "ディーラーの手札:" << dealerCard << endl;
+		cout << "あなたの手札:" << myData.MyCardNum << endl;
 
+		if (dealerCard > myData.MyCardNum) {
+			cout << "ディーラーの勝ち";
+		}
+		else if (dealerCard < myData.MyCardNum) {
+			cout << "あなたの勝ち";
+		}
+		else{
+			cout << "引き分け" << endl;
+		}
+		cout << "ゲームを終了します" << endl;
 	}
+
+	closesocket(clientSocks[2]);
+	closesocket(clientSocks[1]);
+	closesocket(clientSocks[0]);
+	closesocket(listenSock);
+	WSACleanup();
+	return 0;
+
 }
 
 void InitServer(SOCKET sock)
@@ -459,14 +491,4 @@ void InitClient(SOCKET sock)
 	}
 
 	cout << "接続成功" << endl;
-}
-
-void Dealer()
-{
-
-}
-
-void Player()
-{
-
 }
