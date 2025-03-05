@@ -415,19 +415,36 @@ int main()
 					myData.isStand = true;
 				}
 
-				//データ送信
-				PLAYER sendbuff = { htonl(myData.id),htonl(myData.MyCardNum)
-					,htonl(myData.isHit), htonl(myData.isStand) };
-				int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
 			}
 			else
 			{
-				//待機中
+				break;
 			}
 		}
 
+		cout << "勝負" << endl;
+		cout << "ディーラーの手札:" << dealerCard << endl;
+		cout << "あなたの手札:" << myData.MyCardNum << endl;
 
+		if (dealerCard > myData.MyCardNum) {
+			cout << "ディーラーの勝ち";
+		}
+		else if (dealerCard < myData.MyCardNum) {
+			cout << "あなたの勝ち";
+		}
+		else{
+			cout << "引き分け" << endl;
+		}
+		cout << "ゲームを終了します" << endl;
 	}
+
+	closesocket(clientSocks[2]);
+	closesocket(clientSocks[1]);
+	closesocket(clientSocks[0]);
+	closesocket(listenSock);
+	WSACleanup();
+	return 0;
+
 }
 
 void InitServer(SOCKET sock)
