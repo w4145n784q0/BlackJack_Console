@@ -5,19 +5,21 @@
 #include <numeric>
 #include <vector>
 #include <ctime>
+#include<limits>
 #pragma comment( lib, "ws2_32.lib" )
 using std::cout;
 using std::endl;
 using std::cin;
 using std::string;
 using std::vector;
+std::numeric_limits;
 
 // ポート番号
 const unsigned short SERVER_PORT = 8888;
 // 送受信するメッセージの最大値
 const unsigned int MESSAGE_LENGTH = 1024;
 // サーバのIPアドレス
-const char* SERVER_ADDRESS = "192.168.43.5";
+const char* SERVER_ADDRESS = "127.0.0.1";
 
 const int connectPlayer = 3;
 
@@ -59,7 +61,7 @@ int main()
 
 	void InitServer(SOCKET sock);
 	void InitClient(SOCKET sock);
-	
+
 	// WinSock2.2 初期化処理
 	int ret = 0;
 	WSADATA wsaData;
@@ -225,7 +227,7 @@ int main()
 				{
 					send(clientSocks[i], message, strlen(message), 0);
 				}
-				cout << " 3 connected clients!'" << endl;
+				//cout << " 3 connected clients!'" << endl;
 			}
 
 		}
@@ -237,9 +239,9 @@ int main()
 		while (true) {
 			char buff[MESSAGE_LENGTH];
 
-			PLAYER player = { 0,0,false,false};
+			PLAYER player = { 0,0,false,false };
 			PLAYER sendbuff = { htonl(player.id),htonl(player.MyCardNum),htonl(player.isHit),
-						   htonl(player.isStand)};
+						   htonl(player.isStand) };
 
 			int ret = send(listenSock, (char*)&sendbuff, sizeof(sendbuff), 0);
 
@@ -346,15 +348,15 @@ int main()
 						clientCard[i].isHit = ntohl(player.isHit);
 						clientCard[i].isStand = ntohl(player.isStand);
 
-						if (clientCard[i].isStand) 
+						if (clientCard[i].isStand)
 						{
 							allStand[i] = true;
 							cout << "player" << i + 1 << "がスタンドしました" << endl;
 						}
-						
+
 					}
 				}
-				
+
 				if (allStand[0] && allStand[1] && allStand[0])
 				{
 					cout << "全員stand" << endl;
@@ -399,19 +401,24 @@ int main()
 					cout << "新しいカード: " << card << endl;
 					cout << "カードの合計: " << mycardsNum << endl;
 					myData.MyCardNum = mycardsNum;
-					//clientCard->isHit = true;
+
 				}
 				else if (choice == 2) {
-					clientCard->isStand = true;
+					myData.isStand = true;
 					myData.MyCardNum = mycardsNum;
-					//clientCard->isHit = false;
+
 				}
-				else {
+				else if (choice != 1 && choice != 2) {
 					cout << "1か2を入力" << endl;
+				}
+				else
+				{
+					cout << "エラー" << endl;
+					break;
 				}
 
 				if (mycardsNum >= 22) {
-					cout << "burstしました" << endl;
+					cout << "バーストしました" << endl;
 					myData.isStand = true;
 				}
 
@@ -427,13 +434,13 @@ int main()
 		cout << "あなたの手札:" << myData.MyCardNum << endl;
 
 		if (dealerCard > myData.MyCardNum) {
-			cout << "ディーラーの勝ち";
+			cout << "ディーラーの勝ち ";
 		}
 		else if (dealerCard < myData.MyCardNum) {
-			cout << "あなたの勝ち";
+			cout << "あなたの勝ち ";
 		}
-		else{
-			cout << "引き分け" << endl;
+		else {
+			cout << "引き分け " << endl;
 		}
 		cout << "ゲームを終了します" << endl;
 	}
